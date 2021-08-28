@@ -7,7 +7,7 @@ import socket
 import queue
 import json
 import subprocess
-import node.py
+import node
 
 if __name__=='__main__':
     q=queue.Queue(18)
