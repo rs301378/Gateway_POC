@@ -1,7 +1,15 @@
-from flask import Flask, render_template, url_for, request
+from flask import Flask, render_template, request, redirect
 import subprocess
 
 app=Flask(__name__)
+app.config['UPLOAD_FOLDER']='/home/attu/Desktop/ScratchNest/uploads/'
+
+@app.route('/login',methods=['GET','POST'])
+def login():
+    if request.method=="POST":
+        if request.form.get('user')=='admin' and request.form.get('pas')=='admin':
+            return redirect('/')
+    return render_template('login.html')
 
 @app.route('/')
 def home():
@@ -17,6 +25,13 @@ def cloudConfig():
         print(request.form.get('server'))
         print(request.form.get('hostAdd'))
         print(request.form.get('port'))
+        if request.form.get('server')=='aws':
+            root=request.files['rootFile']
+            pvtKey=request.files['pvtKey']
+            iotCert=request.files['iotCert']
+            root.save('/home/attu/Desktop/ScratchNest/uploads/root')
+            pvtKey.save('/home/attu/Desktop/ScratchNest/uploads/pvtKey')
+            iotCert.save('/home/attu/Desktop/ScratchNest/uploads/iotCert')
     return render_template('cloudConfig.html')
 
 @app.route('/nodeConfig')
@@ -54,4 +69,4 @@ def dataManager():
 
 
 if __name__=="__main__":
-    app.run(debug=True)
+    app.run(debug=True,host='0.0.0.0',port=8000)

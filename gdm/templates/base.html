@@ -32,6 +32,7 @@
             <div class="main-header">
                 <p>{%block pageHeading%}{%endblock%}</p>
                 <button onclick="log()" type="submit">LogOut</button>
+                {%block headerBtns%}{%endblock%}
                   <script>
                     function log(){
                       window.location.assign('/adm/log');
