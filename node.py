@@ -29,9 +29,6 @@ def app_node(db):
     global BT_STATUS
     while True:
         if N_STATUS=='Active':
-            #Accelerometer Section
-            #with open("/sys/devices/virtual/misc/FreescaleAccelerometer/data","r") as VAL:
-            #   r=str(VAL.readline())
             #BLE Section
             bt=subprocess.check_output(['hciconfig'])
             if b'UP' in bt:
@@ -44,13 +41,9 @@ def app_node(db):
                 devices=lescan.scan(3)
                 for dev in devices:
                     man=dev.getValueText(255)
-                    #print(man)
-                    #print(len(man))
                     z=man[14:16] + man[12:14]
                     y=man[10:12] + man[8:10]
                     x=man[6:8] + man[4:6]
-                    #print(x,y,z)
-                    #print(hextodec(int(x, 16))*0.00245,hextodec(int(y, 16))*0.00245,hextodec(int(z, 16))*0.00245)
                     x=hextodec(int(x, 16))*0.00245
 				    y=hextodec(int(y, 16))*0.00245
 				    z=hextodec(int(z, 16))*0.00245
@@ -61,7 +54,6 @@ def app_node(db):
                     if not q.full() and C_STATUS=='Active':
                         q.put(payload,block=True,timeout=2)
                 SCAN_STATUS='Inactive'
-            #elif not q.full() and C_STATUS=='Active' and BT_STATUS=='Inactive':
-            #    q.put(r,block=True,timeout=2)
+
 
         time.sleep(3)
