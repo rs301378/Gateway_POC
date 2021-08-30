@@ -1,0 +1,69 @@
+{%extends 'base.html'%}
+
+{%block pageHeading%}Data Manager{%endblock%}
+{%block headerBtns%} <button type="button" id="excelBtn">Download</button> {%endblock%}
+
+{%block navBtns%}
+<li ><a href="{{url_for('home')}}"><img class="icon" ><P>Dashboard</P></a></li>
+<li ><a href="{{url_for('deviceConfig')}}"><img  class="icon" ><P>Device Config</P></a></li>
+<li ><a href="{{url_for('cloudConfig')}}"><img class="icon"  ><P>Cloud Config</P></a></li>
+<li ><a href="{{url_for('nodeConfig')}}"><img class="icon"  ><P>Node Config</P></a></li>
+<li ><a href="{{url_for('networkConfig')}}"><img class="icon"  ><P>Network Config</P></a></li>
+<li class="active"><a href="#"><img class="icon"  ><P>Data Manager</P></a></li>
+<li ><a href="{{url_for('debug')}}"><img class="icon"  ><P>Debug</P></a></li>
+<li ><a href="{{url_for('reports')}}"><img class="icon"  ><P>Reports</P></a></li>
+{%endblock%}
+
+
+{% block content %}
+
+<div class="card" style="width:80%;">
+    <div class="card-head", style="background-color:#d32d41;">
+        Historical Data
+    </div>
+    <div class="card-content">
+        <table style="width: 100%;" id="table2excel">
+            <thead style="color: #4da851;">
+                <tr>
+                    <th>ID</th>
+                    <th>RSSI</th>
+                    <th>PHY config</th>
+                    <th>LED status</th>
+                    <th>MAC address</th>
+                    <th>Accelerometer(X)</th>
+                    <th>Accelerometer(Y)</th>
+                    <th>Accelerometer(Z)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in range(1,50)%}
+                <tr>
+                    <td>{{i}}</td>
+                    <td>-20</td>
+                    <td>1M</td>
+                    <td>ON</td>
+                    <td>fff:fff:fff:fff</td>
+                    <td>4</td>
+                    <td>5</td>
+                    <td>1</td>
+                </tr>
+                {%endfor%}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="{{url_for('static',filename='js/jquery.js')}}"></script>
+<script src="{{url_for('static',filename='js/table2excel.js')}}"></script>
+<script type="text/javascript">
+    $("#excelBtn").click(function(){
+      $("#table2excel").table2excel({
+    // exclude CSS class
+    exclude: ".noExl",
+    name: "Worksheet Name",
+    filename: "histData", //do not include extension
+    fileext: ".xls" // file extension
+  });
+});
+  </script>
+{% endblock%}
