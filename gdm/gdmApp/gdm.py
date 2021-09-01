@@ -1,9 +1,6 @@
-from flask import Flask, render_template, request, redirect, session, url_for  #necessary Imports
+from flask import render_template, request, redirect, session, url_for  #necessary Imports
 import subprocess   #module import for dealing with execution of console command 
-
-app=Flask(__name__)
-app.config['UPLOAD_FOLDER']='/home/attu/Desktop/ScratchNest/uploads/' #path to upload folder
-app.config['SECRET_KEY']="asdadvadfsdfs"      #random secret key
+from gdmApp import app
 
 @app.route('/login',methods=['GET','POST'])   #route for handling login
 def login():
