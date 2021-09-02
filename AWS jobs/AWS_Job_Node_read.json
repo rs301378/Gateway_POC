@@ -1,0 +1,12 @@
+# AWS Node Charateristic Read
+{
+	"category" : "node"
+	"operation" : "read"
+	"node" : {
+			"task" : "ch_read"
+			"mac" : "<mac_Addr>"
+			"service" : "<serviceid>"
+			"char" : "<charid>"
+			"value" : "<publish_topic>"
+	}
+}

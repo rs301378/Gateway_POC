@@ -1,0 +1,10 @@
+# AWS Publish  start
+
+{
+	"category" : "cloud"
+	"operation" : "write"
+	"cloud" : {
+			"task" : "publish_status"
+			"value" : "stop"
+	}
+}

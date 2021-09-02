@@ -1,0 +1,13 @@
+# AWS Node Charateristic Write
+
+{
+	"category" : "node"
+	"operation" : "write"
+	"node" : {
+			"task" : "ch_write"
+			"mac" : "<mac_Addr>"
+			"service" : "<serviceid>"
+			"char" : "<charid>"
+			"value" : "<valuetowrite>"
+	}
+}
