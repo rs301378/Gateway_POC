@@ -40,12 +40,17 @@ def cloudConfig():
                 root.save('/home/attu/Desktop/ScratchNest/uploads/root')        #saving the uploaded files
                 pvtKey.save('/home/attu/Desktop/ScratchNest/uploads/pvtKey')
                 iotCert.save('/home/attu/Desktop/ScratchNest/uploads/iotCert')
+            if 'status' in request.form:
+                print(request.form['status'])
         return render_template('cloudConfig.html')
     return redirect(url_for('login'))
 
-@app.route('/nodeConfig')
+@app.route('/nodeConfig',methods=['GET','POST'])
 def nodeConfig():
     if 'logedIn' in session:
+        if request.method=="POST":
+            print(request.form['status'])
+            print(request.form['scanRate'])
         return render_template('nodeConfig.html')
     return redirect(url_for('login'))
 
@@ -60,7 +65,7 @@ def debug():
     if 'logedIn' in session:
         cmdKey=request.args.get('cmd')          #extracting the command key from the html form
         if cmdKey:
-            cmd={'1':['systemctl','status','apache2'],'2':['ls'],'3':['pwd']}
+            cmd={'1':['hciconfig'],'2':['btmgmt','--index','0','info'],'3':['btmgmt','--index','0','find','-l']}
             if cmdKey in cmd:
                 data=subprocess.Popen(cmd[cmdKey],stdout=subprocess.PIPE).communicate()[0]      #executing the command and getting the data into string format
                 data=data.decode('utf-8')                                                       #decoding the binary the data into string 
@@ -82,7 +87,3 @@ def dataManager():
     if 'logedIn' in session:
         return render_template('dataManager.html')
     return redirect(url_for('login'))
-
-
-if __name__=="__main__":
-    app.run(debug=True,host='0.0.0.0',port=8000)

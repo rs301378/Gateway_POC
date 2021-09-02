@@ -5,7 +5,12 @@ function showServerSelect() {
 
 function cancelConfig() {
   document.getElementById('serverSelect').style.display='none';
+  document.getElementById('statusSelect').style.display='none';
   document.getElementById('showCard').style.display='block';
+}
+function showStatusSelect() {
+  document.getElementById('showCard').style.display='none';
+  document.getElementById('statusSelect').style.display='block';
 }
 
 function afterServerSelection() {
