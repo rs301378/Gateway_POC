@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, session, url_for  #necessary Imports
 import subprocess   #module import for dealing with execution of console command 
 from gdmApp import app
-from demoDb.dbScript import p1 as db
+from .database import p1 as db
 
 @app.route('/login',methods=['GET','POST'])   #route for handling login
 def login():
@@ -21,11 +21,7 @@ def logOut():
 @app.route('/')
 def home():
     if 'logedIn' in session:                #verifying user is logedIn or not
-        nodeData=db.getdata('Node')
-        nodeData={'scanRate':nodeData[0][1],'status':nodeData[0][2]}
-        cloudData=db.getdata('Cloud')
-        cloudData={'server':cloudData[0][1],'hostAdd':cloudData[0][2],'port':cloudData[0][3],'status':cloudData[0][4]}
-        return render_template('home.html',nodeData=nodeData,cloudData=cloudData)
+        return render_template('home.html')
     return redirect(url_for('login'))
 
 @app.route('/deviceConfig')
@@ -38,34 +34,20 @@ def deviceConfig():
 def cloudConfig():
     if 'logedIn' in session:
         if request.method=="POST":     #need db integration for here 
-            if 'status' in request.form:
-                db.updatetable('Cloud','C_Status',request.form['status'])
-            server=request.form.get('server')
-            if 'server' in request.form:
-                db.updatetable('Cloud','ServerType',server)
-                db.updatetable('Cloud','Ip',request.form['hostAdd'])
-                db.updatetable('Cloud','Port',request.form['port'])
-            if server=='aws':
+            if request.form.get('server')=='aws':
                 root=request.files['rootFile']                  #accessing the uploaded files
                 pvtKey=request.files['pvtKey']
                 iotCert=request.files['iotCert']
                 root.save('/home/attu/Desktop/ScratchNest/uploads/root')        #saving the uploaded files
                 pvtKey.save('/home/attu/Desktop/ScratchNest/uploads/pvtKey')
                 iotCert.save('/home/attu/Desktop/ScratchNest/uploads/iotCert')
-        cloudData=db.getdata('Cloud')
-        cloudData={'server':cloudData[0][1],'hostAdd':cloudData[0][2],'port':cloudData[0][3],'status':cloudData[0][4]}
-        return render_template('cloudConfig.html',cloudData=cloudData)
+        return render_template('cloudConfig.html')
     return redirect(url_for('login'))
 
-@app.route('/nodeConfig',methods=['GET','POST'])
+@app.route('/nodeConfig')
 def nodeConfig():
     if 'logedIn' in session:
-        if request.method=="POST":
-            db.updatetable('Node','ScaneRate',request.form['scanRate'])
-            db.updatetable('Node','N_Status',request.form['status'])
-        nodeData=db.getdata('Node')
-        nodeData={'scanRate':nodeData[0][1],'status':nodeData[0][2]}
-        return render_template('nodeConfig.html',nodeData=nodeData)
+        return render_template('nodeConfig.html')
     return redirect(url_for('login'))
 
 @app.route('/netConfig')
@@ -79,7 +61,7 @@ def debug():
     if 'logedIn' in session:
         cmdKey=request.args.get('cmd')          #extracting the command key from the html form
         if cmdKey:
-            cmd={'1':['hciconfig'],'2':['btmgmt','--index','0','info'],'3':['btmgmt','--index','0','find','-l']}
+            cmd={'1':['systemctl','status','apache2'],'2':['ls'],'3':['pwd']}
             if cmdKey in cmd:
                 data=subprocess.Popen(cmd[cmdKey],stdout=subprocess.PIPE).communicate()[0]      #executing the command and getting the data into string format
                 data=data.decode('utf-8')                                                       #decoding the binary the data into string 
@@ -101,3 +83,7 @@ def dataManager():
     if 'logedIn' in session:
         return render_template('dataManager.html')
     return redirect(url_for('login'))
+
+
+if __name__=="__main__":
+    app.run(debug=True,host='0.0.0.0',port=8000)

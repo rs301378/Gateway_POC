@@ -16,12 +16,12 @@
 {% block content %}
 
 <style>
-  #serverSelectBox, #statusSelectBox{
+  #serverSelectBox{
     width:100%;
     padding:5px;
   }
 
-  .btnWrap button, .editBtn{
+  .btnWrap button, #editBtn{
     margin-top:10px;
     padding:3px 8px;
     float:right;
@@ -55,7 +55,7 @@
           <tbody>
             <tr>
               <td><b>Server:</b></td>
-              <td>{{cloudData.server}}</td>
+              <td>Custom</td>
             </tr>
             <tr>
                 <td><b>Protocol:</b></td>
@@ -67,42 +67,16 @@
             </tr>
             <tr>
                 <td><b>Host address:</b></td>
-                <td>{{cloudData.hostAdd}}</td>
+                <td>192.168.43.192</td>
             </tr>
             <tr>
                 <td><b>Port:</b></td>
-                <td>{{cloudData.port}}</td>
+                <td>8000</td>
             </tr>
-            <tr>
-              <td><b>Status:</b></td>
-              <td>{{cloudData.status}}</td>
-          </tr>
           </tbody>
       </table>
-      <button type="button" onclick="showServerSelect()" class="editBtn"  >Server settings</button>
-      <button type="button" onclick="showStatusSelect()"  class="editBtn" style="margin-right: 10px;" >Change status</button>
+      <button type="button" onclick="showServerSelect()" id="editBtn" >Edit</button>
     </div>
-</div>
-
-<div class="card" id="statusSelect" style="display:none;width:30%">
-  <div class="card-content">
-    <form method="post">
-      <table style="width: 100%;">
-          <tbody id="tableBody">
-              <tr>
-                  <td><b>Status:</b></td>
-                  <td><select name="status" id="statusSelectBox">
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select></td>
-              </tr>
-          </tbody>
-      </table>
-      <div class="btnWrap" id="cancelContBtnWrap">
-        <button style="background-color:#d32d41;" onclick="cancelConfig()" type="button">Cancel</button> <button style="background-color:#4da851"  type="submit">Change</button>
-      </div>
-    </form>
-  </div>
 </div>
 
 <div class="card" id="serverSelect" style="display:none;width:30%">

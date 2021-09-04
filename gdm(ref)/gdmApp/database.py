@@ -1,17 +1,17 @@
 import sqlite3
 import time
 
-#conn = sqlite3.connect('/home/lab/gateway/Gateway_POC/mydatabasenew.db',check_same_thread=False)
+conn = sqlite3.connect('/home/lab/gateway/Gateway_POC/mydatabasenew.db',check_same_thread=False)
 
 class tables():
 
     def createTable(self,tablename, val):
-        self.conn.execute('create table if not exists ' + tablename + val)
-        self.conn.commit()
+        conn.execute('create table if not exists ' + tablename + val)
+        conn.commit()
         print("table created")
 
-    def __init__(self):
-        self.conn = sqlite3.connect('/home/lab/gateway/Gateway_POC/mydatabasenew.db',check_same_thread=False)
+    def initt():
+        conn = sqlite3.connect('mydatabasenew.db')
 
     def calltable(self):
         val1 = (' (Key  int ,Id varchar(20) , Name varchar(20) , IPv4 varchar(20) , Interface varchar(20) , Status varchar(20)) ')
@@ -29,7 +29,7 @@ class tables():
     def getdata(self,tableselect):
 
         try:
-            data=self.conn.execute('select * from ' + tableselect)
+            data=conn.execute('select * from ' + tableselect)
             data=data.fetchall()   
             return data
 
@@ -38,7 +38,7 @@ class tables():
             return self.getdata(tableselect)
         
     def getdatadate(tableselect,s,p):
-        d=self.conn.execute('select * from ' + tableselect + 'where date > = '+ s + 'and date < =' + p)
+        d=conn.execute('select * from ' + tableselect + 'where date > = '+ s + 'and date < =' + p)
         d=d.fetchall()
         return d
 
@@ -72,8 +72,8 @@ class tables():
     def putdata(self,tablevalue, data):
         try:
             query = f'insert into {tablevalue} values {data}'
-            self.conn.execute(query)
-            self.conn.commit()
+            conn.execute(query)
+            conn.commit()
         except:
             time.sleep(2)
             self.putdata(tablevalue,data)
@@ -90,28 +90,23 @@ class tables():
     def deletetable(self,tablename):
         d = 'delete from ' + tablename
         print(d)
-        self.conn.execute(d)
+        conn.execute(d)
 
 
     def updatetable(self,tablename, c, v):
         try:
             p = f"update {tablename} set {c} = '{v}' where Key = 1"
-            self.conn.execute(p)
-            self.conn.commit()
+            conn.execute(p)
+            conn.commit()
         except:
             time.sleep(2)
             self.updatetable(tablename,c,v)
             
-    def putdatabeacon(self,tablevalue, data):
-        try:
-            query = f'insert into {tablevalue} (MacAdd , rssi ,PhyConfig ,Config  , Accerlometer_X , Accerlometer_Y , Accerlometer_Z ,date) values {data}'
-            print(query)
-            self.conn.execute(query)
-            self.conn.commit()
-        except Exception as e:
-            time.sleep(2)
-            print(e)
-            #self.putdatabeacon(tablevalue,data)
+    def putdatahistorical(self,tablevalue, data):
+        query = f'insert into {tablevalue} (MacAdd , rssi ,PhyConfig ,Config  , Accerlometer_X , Accerlometer_Y , Accerlometer_Z ,date) values {data}'
+        print(query)
+        conn.execute(query)
+        conn.commit()
 
 
 p1=tables()

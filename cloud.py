@@ -1,7 +1,6 @@
 '''
 @author: Aditya Verma, Rohit Sharma
 Date:28/08/2021
-
 '''
 #import paho.mqtt.client as mqtt
 import ssl, random
@@ -10,19 +9,22 @@ import json
 import sys
 import requests
 from datetime import datetime
+from database import tables
 #from node import app_node
 
+db=tables()
 IoT_protocol_name = "x-amzn-mqtt-ca"
 mqtt_url = "a3qvnhplljfvjr-ats.iot.us-west-2.amazonaws.com"
-root_ca = 'C:/Users/ROHIT/Desktop/scratch_N/certs/AmazonRootCA1.pem'
-public_crt = 'C:/Users/ROHIT/Desktop/scratch_N/certs/gateway-certificate.pem.crt'
-private_key = 'C:/Users/ROHIT/Desktop/scratch_N/certs/gateway-private.pem.key'
+root_ca = '/home/lab/gateway/Gateway_POC/AmazonRootCA1.pem'
+public_crt = '/home/lab/gateway/Gateway_POC/gateway-certificate.pem.crt'
+private_key = '/home/lab/gateway/Gateway_POC/gateway-private.pem.key'
 
 connflag = False
 connbflag = False  #bad connection flag
-pubflag = True
+pubflag = False
+awstopic="thing/1100/data"
 #from database
-port = 443
+port = 8883
 server_type = 'aws'
 custom_url = '3.142.131.2'  
 
@@ -58,22 +60,39 @@ def on_Job(client,obj,msg):
     # This callback will only be called for messages with topics that match
     # $aws/things/Test_gateway/jobs/notify-next
     global pubflag
+    global awstopic
     print(str(msg.payload))
     jobconfig = json.loads(msg.payload.decode('utf-8'))
        
     if 'execution' in jobconfig:
        
         jobid = jobconfig['execution']['jobId']
+        cat = jobconfig['execution']['jobDocument']['category']
         operation = jobconfig['execution']['jobDocument']['operation']
-        cmd=jobconfig['execution']['jobDocument']['command']
+        cmd=jobconfig['execution']['jobDocument'][cat]
+        if cat=='cloud':
+
+            value=cmd['value']
+            task=['task']
         #led_config=jobconfig['execution']['jobDocument']['led']
+        
+        if task=='publish_status' and value=='start':
+            pubflag='True'
+            #db.updatetable('Cloud','C_Status','Active')
+        elif task=='publish_status' and value=='stop':
+            pubflag='False'
+            #db.updatetable('Cloud','C_Status','Inactive')
+            
+        if task=='publish_topic':
+            awstopic=value
+        
            
         jobstatustopic = "$aws/things/Test_gateway/jobs/"+ jobid + "/update"
        
-        if operation=="publish" and cmd=="start":
-            pubflag=True
-        elif operation=="publish" and cmd=="stop":
-            pubflag=False
+        #if operation=="publish" and cmd=="start":
+        #    pubflag=True
+        #elif operation=="publish" and cmd=="stop":
+        #    pubflag=False
         #led config
         
         client.publish(jobstatustopic, json.dumps({ "status" : "SUCCEEDED"}),0)  
@@ -118,56 +137,56 @@ def funInitilise(client):
             print("Connection failed! Please try again...")
             exit(1)
 
-def subscribeClient(client):
-    client.message_callback_add("iot/led", on_LedControl)
-    client.message_callback_add("iot/general", on_General)
-    client.message_callback_add("$aws/things/Test_gateway/jobs/notify-next", on_Job)
-    print("Connecting to AWS IoT Broker...")
-
-    #client.subscribe("iot/#",0)
-    client.subscribe("$aws/things/Test_gateway/jobs/notify-next",1)
-    client.loop_start()
-
-def publishData(client, dt):
+def publishData(client, dt,t,pubflag):
+    topic=t
     if server_type == 'custom':
         topic = 'Msg'
-    elif server_type == 'aws':
-        topic="thing/1100/data"
+        #"thing/1100/data"
     
     name= "BLE Gateway"
     sys_type="Gateway"
     dev_type="Beacon"
-    dev_id="FF:00:00:FF:AA:BB"
+    #Sdev_id="FF:00:00:FF:AA:BB"
     sensor="Accelerometer"
     
-    time.sleep(5)
-    #print(connflag) 
-    if connflag == True and pubflag == True :
-        
-        t_utc = dt.get('t_utc')
-        t_stmp = dt.get('t_stmp')
-        x = dt.get('x')
-        y = dt.get('y')
-        z = dt.get('z')
 
-        msg = {
-            "Name": name,
-            "Type":sys_type,
-            "Device":dev_type,
-            "DeviceID":dev_id,
-            "TimestampUTC": t_utc,
-            "Timestamp": t_stmp,
-            "Sensor":sensor,
-            "X-axis":x,
-            "Y-axis":y,
-            "Z-axis":z
-        }
+    t_utc = dt.get('t_utc')
+    t_stmp = dt.get('t_stmp')
+    mac=dt.get('MAC')
+    rssi=dt.get('RSSI')
+    mactype=dt.get('MACTYPE')
+    x = dt.get('x')
+    y = dt.get('y')
+    z = dt.get('z')
+
+    msg = {
+	    "Name": name,
+	    "Type":sys_type,
+	    "Device":dev_type,
+	    "RSSI":str(rssi),
+	    "IDtype":mactype,
+	    "DeviceID":mac,
+	    "TimestampUTC": str(t_utc),
+	    "Timestamp": str(t_stmp),
+	    "Sensor":sensor,
+	    "X-axis":str(x),
+	    "Y-axis":str(y),
+	    "Z-axis":str(z)
+		}
+    
+    #time.sleep(5)
+    #print(connflag) 
+    print('connflag',connflag,'pubflag',pubflag)
+    if connflag == True and pubflag == True :
+        print("Actually started")
+
         #Internet connection handling along with publishing data
         try:
             requests.head('http://www.google.com/', timeout=3)
             data=json.dumps(msg)
             rt = client.publish(topic,data,qos=1)
             print("Publishing Data...", rt)
+            db.putdatabeacon('HistoricalData',(mac,rssi,'1M','off',str(x),str(y),str(z),t_stmp))
             return True
 
         except requests.ConnectionError as ex:
@@ -175,3 +194,5 @@ def publishData(client, dt):
             return False
     else:
         print("waiting...")
+        db.putdatabeacon('OfflineData',(mac,rssi,'1M','off',str(x),str(y),str(z),t_stmp))
+        

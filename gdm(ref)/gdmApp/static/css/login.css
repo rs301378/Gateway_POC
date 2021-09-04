@@ -20,9 +20,10 @@ body {
   font-size: 42px;
 }
 .logo{
+  margin:auto; 
   width:80%;
   height:80%;
-  background-image:url('../img/loginLogo.jpg');
+  background-image:url('../img/loginLogo.png');
   background-size:cover;
 }
 .msgClass h2{
