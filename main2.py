@@ -119,8 +119,9 @@ def db_reader(dbEvent):
         except:
             time.sleep(5)
             
+        time.sleep(10)    
         dbEvent.set()
-        #time.sleep(10)
+        
         
     
 def preq(led):

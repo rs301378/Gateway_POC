@@ -52,20 +52,32 @@ def cloudConfig():
                 root.save('/home/attu/Desktop/ScratchNest/uploads/root')        #saving the uploaded files
                 pvtKey.save('/home/attu/Desktop/ScratchNest/uploads/pvtKey')
                 iotCert.save('/home/attu/Desktop/ScratchNest/uploads/iotCert')
+<<<<<<< HEAD
         cloudData=db.getdata('Cloud')
         cloudData={'server':cloudData[0][1],'hostAdd':cloudData[0][2],'port':cloudData[0][3],'status':cloudData[0][4]}
         return render_template('cloudConfig.html',cloudData=cloudData)
+=======
+            if 'status' in request.form:
+                print(request.form['status'])
+        return render_template('cloudConfig.html')
+>>>>>>> a194911dc5e9b3a39e690fef4233b2e76d7cc1c8
     return redirect(url_for('login'))
 
 @app.route('/nodeConfig',methods=['GET','POST'])
 def nodeConfig():
     if 'logedIn' in session:
         if request.method=="POST":
+<<<<<<< HEAD
             db.updatetable('Node','ScaneRate',request.form['scanRate'])
             db.updatetable('Node','N_Status',request.form['status'])
         nodeData=db.getdata('Node')
         nodeData={'scanRate':nodeData[0][1],'status':nodeData[0][2]}
         return render_template('nodeConfig.html',nodeData=nodeData)
+=======
+            print(request.form['status'])
+            print(request.form['scanRate'])
+        return render_template('nodeConfig.html')
+>>>>>>> a194911dc5e9b3a39e690fef4233b2e76d7cc1c8
     return redirect(url_for('login'))
 
 @app.route('/netConfig')

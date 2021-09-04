@@ -1,0 +1,11 @@
+# AWS db read offline data
+
+{
+	"category" : "storage"
+	"operation" : "read"
+	"storage" : {
+			"table" : "offline"
+			"value" : "<publish_topic>"
+	}
+}
+
