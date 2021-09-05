@@ -9,10 +9,9 @@ import json
 import sys
 import requests
 from datetime import datetime
-from database import tables
+
 #from node import app_node
 
-db=tables()
 IoT_protocol_name = "x-amzn-mqtt-ca"
 mqtt_url = "a3qvnhplljfvjr-ats.iot.us-west-2.amazonaws.com"
 root_ca = '/home/lab/gateway/Gateway_POC/AmazonRootCA1.pem'
@@ -26,7 +25,7 @@ awstopic="thing/1100/data"
 #from database
 port = 8883
 server_type = 'aws'
-custom_url = '3.142.131.2'  
+custom_url = '3.142.131.2'
 
 
 def onConnect(client, userdata, flags, response_code):
@@ -63,9 +62,9 @@ def on_Job(client,obj,msg):
     global awstopic
     print(str(msg.payload))
     jobconfig = json.loads(msg.payload.decode('utf-8'))
-       
+
     if 'execution' in jobconfig:
-       
+
         jobid = jobconfig['execution']['jobId']
         cat = jobconfig['execution']['jobDocument']['category']
         operation = jobconfig['execution']['jobDocument']['operation']
@@ -75,27 +74,27 @@ def on_Job(client,obj,msg):
             value=cmd['value']
             task=['task']
         #led_config=jobconfig['execution']['jobDocument']['led']
-        
+
         if task=='publish_status' and value=='start':
             pubflag='True'
             #db.updatetable('Cloud','C_Status','Active')
         elif task=='publish_status' and value=='stop':
             pubflag='False'
             #db.updatetable('Cloud','C_Status','Inactive')
-            
+
         if task=='publish_topic':
             awstopic=value
-        
-           
+
+
         jobstatustopic = "$aws/things/Test_gateway/jobs/"+ jobid + "/update"
-       
+
         #if operation=="publish" and cmd=="start":
         #    pubflag=True
         #elif operation=="publish" and cmd=="stop":
         #    pubflag=False
         #led config
-        
-        client.publish(jobstatustopic, json.dumps({ "status" : "SUCCEEDED"}),0)  
+
+        client.publish(jobstatustopic, json.dumps({ "status" : "SUCCEEDED"}),0)
 
 def on_General(client,obj,msg):
     # This callback will only be called for messages with topics that match
@@ -103,19 +102,19 @@ def on_General(client,obj,msg):
     print("GENERAL"+msg.topic+"::"+str(msg.payload))
 
 
-def funInitilise(client):
-    
+def funInitilise(client,SERVER_TYPE,HOST,PORT):
+
     client.on_connect = onConnect
     #client.on_disconnect = onDisconnect
     #client.on_publish = on_publish
-    if server_type == 'custom':
-        client.connect(custom_url)
+    if SERVER_TYPE == 'custom':
+        client.connect(HOST)
+    elif SERVER_TYPE == 'aws':
 
-    elif server_type == 'aws':
-        
+
 # when the connection attempt failed it show "connection failed message"
         try:
-            if port == 8883:
+            if int(PORT) == 8883:
                 client.tls_set(root_ca,
                     certfile = public_crt,
                     keyfile = private_key,
@@ -123,32 +122,32 @@ def funInitilise(client):
                     tls_version = ssl.PROTOCOL_TLSv1_2,
                     ciphers = None)
 
-                client.connect(mqtt_url, port = port, keepalive=60)
-            
-            elif port == 443:
+                client.connect(HOST, port = int(PORT), keepalive=60)
+
+            elif int(PORT) == 443:
                 ssl_context = ssl.create_default_context()
                 ssl_context.set_alpn_protocols([IoT_protocol_name])
                 ssl_context.load_verify_locations(cafile=root_ca)
                 ssl_context.load_cert_chain(certfile=public_crt, keyfile=private_key)
 
                 client.tls_set_context(context = ssl_context)
-                client.connect(mqtt_url, port = port, keepalive=60)
+                client.connect(HOST, port = int(PORT), keepalive=60)
         except:
             print("Connection failed! Please try again...")
             exit(1)
 
-def publishData(client, dt,t,pubflag):
+def publishData(client, dt,t,pubflag,mainBuffer,SERVER_TYPE):
     topic=t
-    if server_type == 'custom':
+    if SERVER_TYPE == 'custom':
         topic = 'Msg'
         #"thing/1100/data"
-    
+
     name= "BLE Gateway"
     sys_type="Gateway"
     dev_type="Beacon"
     #Sdev_id="FF:00:00:FF:AA:BB"
     sensor="Accelerometer"
-    
+
 
     t_utc = dt.get('t_utc')
     t_stmp = dt.get('t_stmp')
@@ -173,9 +172,9 @@ def publishData(client, dt,t,pubflag):
 	    "Y-axis":str(y),
 	    "Z-axis":str(z)
 		}
-    
+
     #time.sleep(5)
-    #print(connflag) 
+    #print(connflag)
     print('connflag',connflag,'pubflag',pubflag)
     if connflag == True and pubflag == True :
         print("Actually started")
@@ -186,7 +185,8 @@ def publishData(client, dt,t,pubflag):
             data=json.dumps(msg)
             rt = client.publish(topic,data,qos=1)
             print("Publishing Data...", rt)
-            db.putdatabeacon('HistoricalData',(mac,rssi,'1M','off',str(x),str(y),str(z),t_stmp))
+            mainBuffer['dbCmnd'].append({'table':'HistoricalData','operation':'write','value':('1',mac,rssi,'1M','off',str(x),str(y),str(z),t_utc),'source':'cloud'})
+
             return True
 
         except requests.ConnectionError as ex:
@@ -194,5 +194,4 @@ def publishData(client, dt,t,pubflag):
             return False
     else:
         print("waiting...")
-        db.putdatabeacon('OfflineData',(mac,rssi,'1M','off',str(x),str(y),str(z),t_stmp))
-        
+        mainBuffer['dbCmnd'].append({'table':'OfflineData','operation':'write','value':('1',mac,rssi,'1M','off',str(x),str(y),str(z),t_utc),'source':'cloud'})

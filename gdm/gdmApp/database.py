@@ -1,17 +1,17 @@
 import sqlite3
 import time
 
-conn = sqlite3.connect('/home/lab/gateway/Gateway_POC/mydatabasenew.db',check_same_thread=False)
+#conn = sqlite3.connect('/home/lab/gateway/Gateway_POC/mydatabasenew.db',check_same_thread=False)
 
 class tables():
 
     def createTable(self,tablename, val):
-        conn.execute('create table if not exists ' + tablename + val)
-        conn.commit()
+        self.conn.execute('create table if not exists ' + tablename + val)
+        self.conn.commit()
         print("table created")
 
-    def initt():
-        conn = sqlite3.connect('mydatabasenew.db')
+   # def __init__(self):
+        #self.conn = sqlite3.connect('/home/lab/gateway/Gateway_POC/mydatabasenew.db',check_same_thread=False)
 
     def calltable(self):
         val1 = (' (Key  int ,Id varchar(20) , Name varchar(20) , IPv4 varchar(20) , Interface varchar(20) , Status varchar(20)) ')
@@ -26,11 +26,14 @@ class tables():
         self.createTable('HistoricalData', val4)
         self.createTable('OfflineData', val5)
 
-    def getdata(self,tableselect):
+   
 
+    def getdata(self,tableselect):
+        conn=self.connect()
         try:
             data=conn.execute('select * from ' + tableselect)
-            data=data.fetchall()   
+            data=data.fetchall()  
+            conn.close() 
             return data
 
         except:
@@ -38,7 +41,7 @@ class tables():
             return self.getdata(tableselect)
         
     def getdatadate(tableselect,s,p):
-        d=conn.execute('select * from ' + tableselect + 'where date > = '+ s + 'and date < =' + p)
+        d=self.conn.execute('select * from ' + tableselect + 'where date > = '+ s + 'and date < =' + p)
         d=d.fetchall()
         return d
 
@@ -72,8 +75,8 @@ class tables():
     def putdata(self,tablevalue, data):
         try:
             query = f'insert into {tablevalue} values {data}'
-            conn.execute(query)
-            conn.commit()
+            self.conn.execute(query)
+            self.conn.commit()
         except:
             time.sleep(2)
             self.putdata(tablevalue,data)
@@ -90,26 +93,41 @@ class tables():
     def deletetable(self,tablename):
         d = 'delete from ' + tablename
         print(d)
-        conn.execute(d)
+        self.conn.execute(d)
 
 
     def updatetable(self,tablename, c, v):
+        print('hmmmmmmm')
+        conn=self.connect()
         try:
             p = f"update {tablename} set {c} = '{v}' where Key = 1"
+            print('hmmm')
             conn.execute(p)
             conn.commit()
-        except:
-            time.sleep(2)
-            self.updatetable(tablename,c,v)
+            conn.close()
+        except Exception as e:
+            print(e)
+            #time.sleep(2)
+            #self.updatetable(tablename,c,v)
             
-    def putdatahistorical(self,tablevalue, data):
-        query = f'insert into {tablevalue} (MacAdd , rssi ,PhyConfig ,Config  , Accerlometer_X , Accerlometer_Y , Accerlometer_Z ,date) values {data}'
-        print(query)
-        conn.execute(query)
-        conn.commit()
+    def putdatabeacon(self,tablevalue, data):
+        
+        try:
+            query = f'insert into {tablevalue} (MacAdd , rssi ,PhyConfig ,Config  , Accerlometer_X , Accerlometer_Y , Accerlometer_Z ,date) values {data}'
+            print(query)
+            self.conn.execute(query)
+            self.conn.commit()
+        except Exception as e:
+            time.sleep(2)
+            print(e)
+            #self.putdatabeacon(tablevalue,data)
 
-
+    def connect(self):
+        conn = sqlite3.connect('/home/lab/gateway/Gateway_POC/mydatabasenew.db',check_same_thread=False)
+        return conn
+        
 p1=tables()
+p1.updatetable('Cloud','C_Status','Active')
 #print(p1.getdata('Node'))
 #p1.calltable()
 

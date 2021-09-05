@@ -15,7 +15,7 @@ class tables():
 
     def calltable(self):
         val1 = (' (Key  int ,Id varchar(20) , Name varchar(20) , IPv4 varchar(20) , Interface varchar(20) , Status varchar(20)) ')
-        val2 = (' ( key int ,ServerType varchar(20) ,Ip varchar(20) , Port varchar(20) , C_Status varchar(20) ) ')
+        val2 = (' ( key int ,ServerType varchar(20) ,Ip varchar(100) , Port varchar(20) , C_Status varchar(20) ) ')
         val3 = (' (key int ,ScaneRate varchar(20)  , N_Status varchar(20) , I_Status varchar(20) ) ')
         val4 = ('(Id int , MacAdd varchar(20) , rssi varchar(20) , PhyConfig varchar(20) , Config varchar(20) , Accerlometer_X varchar(20) , Accerlometer_Y varchar(20) , Accerlometer_Z varchar(20) , date varchar(20) )')
         val5 = ('(Id int , MacAdd varchar(20) , rssi varchar(20) , PhyConfig varchar(20) , Config varchar(20) , Accerlometer_X varchar(20) , Accerlometer_Y varchar(20) , Accerlometer_Z varchar(20) , date varchar(20))')
@@ -30,13 +30,13 @@ class tables():
 
         try:
             data=self.conn.execute('select * from ' + tableselect)
-            data=data.fetchall()   
+            data=data.fetchall()
             return data
 
         except:
             time.sleep(2)
             return self.getdata(tableselect)
-        
+
     def getdatadate(tableselect,s,p):
         d=self.conn.execute('select * from ' + tableselect + 'where date > = '+ s + 'and date < =' + p)
         d=d.fetchall()
@@ -66,7 +66,7 @@ class tables():
         self.getdata('Cloud')
         self.getdata('Node')
         self.getdata('HistoricalData')
-        self.getdata('OfflineData')
+        print(self.getdata('OfflineData'))
 
 
     def putdata(self,tablevalue, data):
@@ -74,17 +74,19 @@ class tables():
             query = f'insert into {tablevalue} values {data}'
             self.conn.execute(query)
             self.conn.commit()
-        except:
+        except Exception as e:
             time.sleep(2)
-            self.putdata(tablevalue,data)
+            print('cannot write to db')
+            print(e)
+            #elf.putdata(tablevalue,data)
 
 
     def callputdata(self):
         self.putdata('Device', ('1', '1100110011', 'Test Device', '172.23.0.26', 'ETHERNET', 'Active'))
-        self.putdata('Cloud', ('1','Unsecured', 'x.x.x.x', 'xxxx', 'Active'))
+        self.putdata('Cloud', ('1','Unsecured', '0.0.0.0', '8883', 'Active'))
         self.putdata('Node', ('1' ,'3', 'Active', 'Active'))
-        #self.putdata('HistoricalData', ('1', '1100110011', 'Test Device', '172.23.0.26', 'ETHERNET', '20' , '20' , '20' ,'2021-09-03'))
-        #self.putdata('OfflineData', ('1', '1100110011', 'Test Device', '172.23.0.26', 'ETHERNET', '20' , '20' , '20' ,'2021-09-03'))
+        self.putdata('HistoricalData', ('1', '1100110011', 'Test Device', '172.23.0.26', 'ETHERNET', '20' , '20' , '20' ,'2021-09-03'))
+        self.putdata('OfflineData', ('1', '1100110011', 'Test Device', '172.23.0.26', 'ETHERNET', '20' , '20' , '20' ,'2021-09-03'))
 
 
     def deletetable(self,tablename):
@@ -94,14 +96,17 @@ class tables():
 
 
     def updatetable(self,tablename, c, v):
+        print('hmmmmmmm')
         try:
             p = f"update {tablename} set {c} = '{v}' where Key = 1"
+            print('hmmm')
             self.conn.execute(p)
             self.conn.commit()
-        except:
-            time.sleep(2)
-            self.updatetable(tablename,c,v)
-            
+        except Exception as e:
+            print(e)
+            #time.sleep(2)
+            #self.updatetable(tablename,c,v)
+
     def putdatabeacon(self,tablevalue, data):
         try:
             query = f'insert into {tablevalue} (MacAdd , rssi ,PhyConfig ,Config  , Accerlometer_X , Accerlometer_Y , Accerlometer_Z ,date) values {data}'
@@ -112,7 +117,8 @@ class tables():
             time.sleep(2)
             print(e)
             #self.putdatabeacon(tablevalue,data)
-
+    def close(self):
+        self.conn.close()
 
 p1=tables()
 #print(p1.getdata('Node'))
@@ -123,4 +129,6 @@ p1=tables()
 #p1.HistoricalDataread()
 #p1.offlinedataread()
 #p1.callputdata()
+#p1.configdataread()
+#p1.close()
 #p1.deletetable()
