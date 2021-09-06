@@ -14,13 +14,13 @@ from database import p1 as db
 from datetime import datetime
 
 awstopic=""
-pubflag=False
-conFlag=True
+#pubflag=False
+#conFlag=True
 
 
 def parse(jobconfig,client):
-    global pubflag
-    global awstopic
+    #global pubflag
+    #global awstopic
 
     if 'execution' in jobconfig:
 
@@ -35,17 +35,19 @@ def parse(jobconfig,client):
         #led_config=jobconfig['execution']['jobDocument']['led']
 
             if task=='publish_status' and value=='start':
-                pubflag=True
+                #pubflag=True
+                mainBuffer['dbCmnd'].append({'table':'Cloud','operation':'update','value':'True','column':'PUBFLAG','source':'job'})
                 print("Publish Started")
             #db.updatetable('Cloud','C_Status','Active')
             elif task=='publish_status' and value=='stop':
-                pubflag=False
+                #pubflag=False
+                mainBuffer['dbCmnd'].append({'table':'Cloud','operation':'update','value':'False','column':'PUBFLAG','source':'job'})
                 print("Publish Stopped")
             #db.updatetable('Cloud','C_Status','Inactive')
 
             if task=='publish_topic':
-                awstopic=value
-                print("Topic set",awstopic)
+                mainBuffer['dbCmnd'].append({'table':'Cloud','operation':'update','value':value,'column':'TOPIC','source':'job'})
+                print("Topic set",TOPIC)
 
         #if cat=='node':
         #if op=='read':
@@ -101,6 +103,8 @@ def monitor(monEvent,conEvent):
     global SCAN_TIME
     global conFlag
     global SERVER_TYPE
+    global TOPIC
+    global PUBFLAG
     while True:
 
         if len(mainBuffer['monitor'])!=0:
@@ -114,16 +118,16 @@ def monitor(monEvent,conEvent):
             I_STATUS=dataa['I_STATUS']
             SCAN_TIME=dataa['SCAN_TIME']
             SERVER_TYPE=dataa['SERVER_TYPE']
-            if conFlag==True:
-                conEvent.set()
-                conFlag=False
+            TOPIC=dataa['TOPIC']
+            PUBFLAG=dataa['PUBFLAG']
             monEvent.set()
         mainBuffer['dbCmnd'].append({'table':'','operation':'read','value':'','source':'monitor'})
         print("Cloud-",C_STATUS)
         print("Node-",N_STATUS)
         print("Scan-",SCAN_TIME)
         print("Host-",HOST)
-        print("Prev_host-",prev_HOST)
+        print("Pubflag-",PUBFLAG)
+        print("Topic-",TOPIC)
         time.sleep(5)
 
 
@@ -156,7 +160,7 @@ def node(monEvent):
 
 def cloud():
     global client
-    global pubflag
+    #global pubflag
 
     while True:
         chgEvent.wait()
@@ -183,8 +187,9 @@ def cloud():
                 #print('pubflag',pubflag)
                 #print('dt',dt)
                 if SERVER_TYPE == 'custom':
-                    pubflag=True
-                publishData(client,dt,awstopic,pubflag,mainBuffer,SERVER_TYPE)
+                    publishData(client,dt,TOPIC,'True',mainBuffer,SERVER_TYPE)
+                elif SERVER_TYPE == 'aws':
+                    publishData(client,dt,TOPIC,PUBFLAG,mainBuffer,SERVER_TYPE)
         time.sleep(3)
 
 def dbMaster():
@@ -210,13 +215,14 @@ def dbMaster():
                     HOST_=dataa[0][2]
                     PORT_=dataa[0][3]
                     C_STATUS_=dataa[0][4]
-
+                    TOPIC_=dataa[0][5]
+                    PUBFLAG_=dataa[0][6]
 
                     dataa=db.getdata('Node')
                     N_STATUS_=dataa[0][2]
                     I_STATUS_=dataa[0][3]
                     SCAN_TIME_=dataa[0][1]
-                    payl={'ID':ID_,'NAME':NAME_,'SERVER_TYPE':SERVER_TYPE_,'HOST':HOST_,'PORT':PORT_,'C_STATUS':C_STATUS_,'N_STATUS':N_STATUS_,'I_STATUS':I_STATUS_,'SCAN_TIME':SCAN_TIME_}
+                    payl={'ID':ID_,'NAME':NAME_,'SERVER_TYPE':SERVER_TYPE_,'HOST':HOST_,'PORT':PORT_,'C_STATUS':C_STATUS_,'N_STATUS':N_STATUS_,'I_STATUS':I_STATUS_,'SCAN_TIME':SCAN_TIME_,'TOPIC':TOPIC_,'PUBFLAG':PUBFLAG_}
                     mainBuffer[source].append(payl)
 
                 #if source=='cloud':
@@ -229,6 +235,10 @@ def dbMaster():
                     db.putdata(table,value)
                 if table=='OfflineData':
                     db.putdata(table,value)
+
+            if job['operation']=='update':
+                if table=='Cloud':
+                    db.updatetable(table,job['column'],job['value'])
 
 
 
@@ -258,6 +268,8 @@ if __name__=='__main__':
     prev_HOST=''
     prev_PORT=''
     SERVER_TYPE=''
+    TOPIC=''
+    PUBFLAG=''
     #creating obejct of MQTT client
     q=deque([])
 
@@ -301,7 +313,7 @@ if __name__=='__main__':
             prev_PORT=PORT
             #print("Current",prev_HOST)
             if SERVER_TYPE == 'aws':
-                pubflag=False
+                #PUBFLAG=False
                 client.subscribe("$aws/things/Test_gateway/jobs/notify-next",1)
             client.loop_start()
             chgEvent.set()

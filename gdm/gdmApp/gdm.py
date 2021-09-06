@@ -45,6 +45,7 @@ def cloudConfig():
                 db.updatetable('Cloud','ServerType',server)
                 db.updatetable('Cloud','Ip',request.form['hostAdd'])
                 db.updatetable('Cloud','Port',request.form['port'])
+                db.updatetable('Cloud','PUBFLAG','False')
             if server=='aws':
                 root=request.files['rootFile']                  #accessing the uploaded files
                 pvtKey=request.files['pvtKey']

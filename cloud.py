@@ -176,7 +176,7 @@ def publishData(client, dt,t,pubflag,mainBuffer,SERVER_TYPE):
     #time.sleep(5)
     #print(connflag)
     print('connflag',connflag,'pubflag',pubflag)
-    if connflag == True and pubflag == True and topic!='':
+    if connflag == True and pubflag == 'True' and topic!='':
         print("Actually started")
 
         #Internet connection handling along with publishing data
