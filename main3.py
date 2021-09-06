@@ -146,12 +146,17 @@ def node(monEvent):
     while True:
         if C_STATUS=='Active' and N_STATUS=='Active':
             payload=app_node(int(SCAN_TIME))
-            q.append(payload)
+            if payload!=None:
+                q.append(payload)
         time.sleep(3)
 
 
-def cloud(client):
+def cloud():
+    global client
+    global pubflag
     while True:
+        print(client)
+        print(id(client))
         if len(q)!=0 and C_STATUS=='Active' and N_STATUS=='Active':#and I_STATUS=='Active':
             d = q.popleft()
             #print(d)
@@ -256,7 +261,6 @@ if __name__=='__main__':
 
     conEvent=threading.Event()
     monEvent=threading.Event()
-    #led = threading.Event()
     t_dbMaster=threading.Thread(name='dbMaster', target=dbMaster)
     t_dbMaster.start()
     t_monitor = threading.Thread(name='monitor', target=monitor,args=(monEvent,conEvent,))
@@ -265,32 +269,27 @@ if __name__=='__main__':
     t_node.start()
 
     conEvent.wait()
-
+    connflag=False
     client = mqtt.Client()
+
     client.message_callback_add("$aws/things/Test_gateway/jobs/notify-next",job)
-    print("Connecting to AWS IoT Broker...")
-    t_cloud=threading.Thread(name='cloud', target=cloud,args=(client,))
+    print("Connecting first time to cloud.")
+    t_cloud=threading.Thread(name='cloud', target=cloud)
     t_cloud.start()
     while True:
         if prev_HOST!=HOST and prev_PORT!=PORT and C_STATUS=='Active':
+            if connflag==True:
+                client.loop_stop()
+                client.disconnect()
+            client = mqtt.Client()
+            client.message_callback_add("$aws/things/Test_gateway/jobs/notify-next",job)
+            print("Connecting to cloud...")
             pubflag=False
             funInitilise(client,SERVER_TYPE,HOST,PORT)
             prev_HOST=HOST
             prev_PORT=PORT
             if SERVER_TYPE == 'aws':
+                pubflag=False
                 client.subscribe("$aws/things/Test_gateway/jobs/notify-next",1)
             client.loop_start()
         time.sleep(5)
-
-    #t_cloud=threading.Thread(name='cloud', target=cloud,args=(client,))
-    #t_cloud.start()
-
-
-
-
-
-
-#from database
-#port = 443
-#server_type = 'aws'
-#custom_url = '3.142.131.2'
