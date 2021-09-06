@@ -58,12 +58,13 @@ def app_node(SCAN_TIME):
                     x=hextodec(int(x, 16))*0.00245
                     y=hextodec(int(y, 16))*0.00245
                     z=hextodec(int(z, 16))*0.00245
+
+                    now=datetime.now()
+
+                    payload.append({'TYPE':'Beacon','MAC':dev.addr,'MACTYPE':dev.addrType,'RSSI':dev.rssi,'Accelerometer(x)':x,'Accelerometer(y)':y,'Accelerometer(z)':z,'Timestamp':int(datetime.timestamp(now))})
                 except:
                     pass
 
-                now=datetime.now()
-
-                payload.append({'TYPE':'Beacon','MAC':dev.addr,'MACTYPE':dev.addrType,'RSSI':dev.rssi,'Accelerometer(x)':x,'Accelerometer(y)':y,'Accelerometer(z)':z,'Timestamp':int(datetime.timestamp(now))})
         SCAN_STATUS='Inactive'
         return payload
 

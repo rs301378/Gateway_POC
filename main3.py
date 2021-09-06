@@ -79,7 +79,8 @@ def job(client,obj,msg):
 
     # This callback will only be called for messages with topics that match
     # $aws/things/Test_gateway/jobs/notify-next
-
+    print("Job callback")
+    print(str(msg.payload))
     jobconfig = json.loads(msg.payload.decode('utf-8'))
     t_job = threading.Thread(name='parse', target=parse,args=(jobconfig,client,))
     t_job.start()
@@ -292,7 +293,7 @@ if __name__=='__main__':
                 client.loop_stop()
                 client.disconnect()
             client = mqtt.Client()
-            #client.message_callback_add("$aws/things/Test_gateway/jobs/notify-next",job)
+            client.message_callback_add("$aws/things/Test_gateway/jobs/notify-next",job)
             print("Connecting to cloud...")
             #pubflag=False
             funInitilise(client,SERVER_TYPE,HOST,PORT)
@@ -306,4 +307,4 @@ if __name__=='__main__':
             chgEvent.set()
             print("-"*20)
         #print("main running")
-        time.sleep(5)
+        time.sleep(1)
