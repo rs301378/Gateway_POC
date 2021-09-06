@@ -121,6 +121,8 @@ def monitor(monEvent,conEvent):
         print("Cloud-",C_STATUS)
         print("Node-",N_STATUS)
         print("Scan-",SCAN_TIME)
+        print("Host-",HOST)
+        print("Prev_host-",prev_HOST)
         time.sleep(5)
 
 
@@ -154,9 +156,10 @@ def node(monEvent):
 def cloud():
     global client
     global pubflag
+
     while True:
-        print(client)
-        print(id(client))
+        chgEvent.wait()
+        print("cloud publish")
         if len(q)!=0 and C_STATUS=='Active' and N_STATUS=='Active':#and I_STATUS=='Active':
             d = q.popleft()
             #print(d)
@@ -261,6 +264,7 @@ if __name__=='__main__':
 
     conEvent=threading.Event()
     monEvent=threading.Event()
+    chgEvent=threading.Event()
     t_dbMaster=threading.Thread(name='dbMaster', target=dbMaster)
     t_dbMaster.start()
     t_monitor = threading.Thread(name='monitor', target=monitor,args=(monEvent,conEvent,))
@@ -268,28 +272,38 @@ if __name__=='__main__':
     t_node=threading.Thread(name='NODE', target=node,args=(monEvent,))
     t_node.start()
 
-    conEvent.wait()
-    connflag=False
-    client = mqtt.Client()
+    #conEvent.wait()
+    #connflag=False
+    #client = mqtt.Client()
 
-    client.message_callback_add("$aws/things/Test_gateway/jobs/notify-next",job)
-    print("Connecting first time to cloud.")
+    #client.message_callback_add("$aws/things/Test_gateway/jobs/notify-next",job)
+    #print("Connecting first time to cloud.")
     t_cloud=threading.Thread(name='cloud', target=cloud)
     t_cloud.start()
     while True:
-        if prev_HOST!=HOST and prev_PORT!=PORT and C_STATUS=='Active':
+        if prev_HOST!=HOST or prev_PORT!=PORT:
+            print("-"*20)
+            print("Server setting")
+            #print(HOST)
+            #print(PORT)
+            if chgEvent.isSet():
+                chgEvent.clear()
             if connflag==True:
                 client.loop_stop()
                 client.disconnect()
             client = mqtt.Client()
-            client.message_callback_add("$aws/things/Test_gateway/jobs/notify-next",job)
+            #client.message_callback_add("$aws/things/Test_gateway/jobs/notify-next",job)
             print("Connecting to cloud...")
-            pubflag=False
+            #pubflag=False
             funInitilise(client,SERVER_TYPE,HOST,PORT)
             prev_HOST=HOST
             prev_PORT=PORT
+            #print("Current",prev_HOST)
             if SERVER_TYPE == 'aws':
                 pubflag=False
                 client.subscribe("$aws/things/Test_gateway/jobs/notify-next",1)
             client.loop_start()
+            chgEvent.set()
+            print("-"*20)
+        #print("main running")
         time.sleep(5)
