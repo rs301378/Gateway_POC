@@ -12,11 +12,17 @@ from datetime import datetime
 
 #from node import app_node
 
+path=(__file__).split('/')
+path.pop()
+path="/".join(path)
+path=path+'/certUploads/'
+print(path)
+
 IoT_protocol_name = "x-amzn-mqtt-ca"
 mqtt_url = "a3qvnhplljfvjr-ats.iot.us-west-2.amazonaws.com"
-root_ca = '/home/lab/gateway/Gateway_POC/AmazonRootCA1.pem'
-public_crt = '/home/lab/gateway/Gateway_POC/gateway-certificate.pem.crt'
-private_key = '/home/lab/gateway/Gateway_POC/gateway-private.pem.key'
+root_ca = path+'root.pem'
+public_crt = path+'cert.pem.crt'
+private_key = path+'key.pem.key'
 
 connflag = False
 connbflag = False  #bad connection flag

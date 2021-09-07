@@ -38,6 +38,7 @@ def app_node(SCAN_TIME):
         BT_STATUS='Active'
     else:
         BT_STATUS='Inactive'
+        print('Node not connected')
     if BT_STATUS=='Active':
         SCAN_STATUS='Active'
         lescan=Scanner(0)
@@ -47,14 +48,10 @@ def app_node(SCAN_TIME):
             dev_name=dev.getValueText(9)
             if dev_name=='Tag':
                 man=dev.getValueText(255)
-                #print(man)
-                #print(len(man))
                 try:
                     z=man[14:16] + man[12:14]
                     y=man[10:12] + man[8:10]
                     x=man[6:8] + man[4:6]
-                    #print(x,y,z)
-                    #print(hextodec(int(x, 16))*0.00245,hextodec(int(y, 16))*0.00245,hextodec(int(z, 16))*0.00245)
                     x=hextodec(int(x, 16))*0.00245
                     y=hextodec(int(y, 16))*0.00245
                     z=hextodec(int(z, 16))*0.00245

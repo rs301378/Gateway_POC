@@ -3,6 +3,14 @@ import subprocess   #module import for dealing with execution of console command
 from gdmApp import app
 from .database import p1 as db
 
+path=(__file__).split('/')
+path.pop()
+path.pop()
+path.pop()
+path="/".join(path)
+path=path+'/certUploads/'
+
+
 @app.route('/login',methods=['GET','POST'])   #route for handling login
 def login():
     if request.method=="POST":
@@ -50,9 +58,9 @@ def cloudConfig():
                 root=request.files['rootFile']                  #accessing the uploaded files
                 pvtKey=request.files['pvtKey']
                 iotCert=request.files['iotCert']
-                root.save('/home/lab/dump/root')        #saving the uploaded files
-                pvtKey.save('/home/lab/dump/key')
-                iotCert.save('/home/lab/dump/cert')
+                root.save(path+'root.pem')        #saving the uploaded files
+                pvtKey.save(path+'key.pem.key')
+                iotCert.save(path+'cert.pem.crt')
         cloudData=db.getdata('Cloud')
         cloudData={'server':cloudData[0][1],'hostAdd':cloudData[0][2],'port':cloudData[0][3],'status':cloudData[0][4]}
         return render_template('cloudConfig.html',cloudData=cloudData)
