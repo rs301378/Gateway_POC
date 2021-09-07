@@ -61,46 +61,6 @@ def on_LedControl(client,obj,msg):
     print("MAC:",cmd["MAC"])
     print("CMD:",cmd["CMD"])
 
-def on_Job(client,obj,msg):
-    # This callback will only be called for messages with topics that match
-    # $aws/things/Test_gateway/jobs/notify-next
-    global pubflag
-    global awstopic
-    print(str(msg.payload))
-    jobconfig = json.loads(msg.payload.decode('utf-8'))
-
-    if 'execution' in jobconfig:
-
-        jobid = jobconfig['execution']['jobId']
-        cat = jobconfig['execution']['jobDocument']['category']
-        operation = jobconfig['execution']['jobDocument']['operation']
-        cmd=jobconfig['execution']['jobDocument'][cat]
-        if cat=='cloud':
-
-            value=cmd['value']
-            task=['task']
-        #led_config=jobconfig['execution']['jobDocument']['led']
-
-        if task=='publish_status' and value=='start':
-            pubflag='True'
-            #db.updatetable('Cloud','C_Status','Active')
-        elif task=='publish_status' and value=='stop':
-            pubflag='False'
-            #db.updatetable('Cloud','C_Status','Inactive')
-
-        if task=='publish_topic':
-            awstopic=value
-
-
-        jobstatustopic = "$aws/things/Test_gateway/jobs/"+ jobid + "/update"
-
-        #if operation=="publish" and cmd=="start":
-        #    pubflag=True
-        #elif operation=="publish" and cmd=="stop":
-        #    pubflag=False
-        #led config
-
-        client.publish(jobstatustopic, json.dumps({ "status" : "SUCCEEDED"}),0)
 
 def on_General(client,obj,msg):
     # This callback will only be called for messages with topics that match
