@@ -1,0 +1,12 @@
+# AWS db read historical data
+
+{
+	"category" : "storage"
+	"operation" : "read"
+	"storage" : {
+			"table" : "historical"
+			"start_time" : "<date>"
+			"end_time" : "<date>"
+			"value" : "<publish_topic>"
+	}
+}

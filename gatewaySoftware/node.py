@@ -37,7 +37,7 @@ def app_node(SCAN_TIME):
         print('Node not connected')
     if BT_STATUS=='Active':
         lescan=Scanner(0)
-        devices=lescan.scan(SCAN_TIME)
+        devices=lescan.scan(int(SCAN_TIME))
         payload=[]
         for dev in devices:
             dev_name=dev.getValueText(9)

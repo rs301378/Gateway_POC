@@ -40,7 +40,7 @@ class tables():
             time.sleep(2)
             return self.getdata(tableselect)
         
-    def getdatadate(tableselect,s,p):
+    def getdatadate(self,tableselect,s,p):
         d=self.conn.execute('select * from ' + tableselect + 'where date > = '+ s + 'and date < =' + p)
         d=d.fetchall()
         return d
@@ -125,7 +125,7 @@ class tables():
         return conn
         
 p1=tables()
-#p1.updatetable('Cloud','C_Status','Active')
+p1.updatetable('Cloud','C_Status','Active')
 #print(p1.getdata('Node'))
 #p1.calltable()
 

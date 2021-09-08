@@ -1,100 +1,16 @@
-import threading
-import time
-import sqlite3
-import paho.mqtt.client as mqtt
-import requests
-import socket
-import queue
-import json
-import subprocess
-from collections import deque
-from cloud import *
-from node import *
-from database import p1 as db
-from datetime import datetime
-
-awstopic=""
-#pubflag=False
-#conFlag=True
-
-
-def parse(jobconfig,client):
-    #global pubflag
-    #global awstopic
-
-    if 'execution' in jobconfig:
-
-        jobid = jobconfig['execution']['jobId']
-        cat = jobconfig['execution']['jobDocument']['category']
-        operation = jobconfig['execution']['jobDocument']['operation']
-        cmd=jobconfig['execution']['jobDocument'][cat]
-        if cat=='cloud':
-
-            value=cmd['value']
-            task=cmd['task']
-        #led_config=jobconfig['execution']['jobDocument']['led']
-
-            if task=='publish_status' and value=='start':
-                #pubflag=True
-                mainBuffer['dbCmnd'].append({'table':'Cloud','operation':'update','value':'True','column':'PUBFLAG','source':'job'})
-                print("Publish Started")
-            #db.updatetable('Cloud','C_Status','Active')
-            elif task=='publish_status' and value=='stop':
-                #pubflag=False
-                mainBuffer['dbCmnd'].append({'table':'Cloud','operation':'update','value':'False','column':'PUBFLAG','source':'job'})
-                print("Publish Stopped")
-            #db.updatetable('Cloud','C_Status','Inactive')
-
-            if task=='publish_topic':
-                mainBuffer['dbCmnd'].append({'table':'Cloud','operation':'update','value':value,'column':'TOPIC','source':'job'})
-                print("Topic set",TOPIC)
-
-        if cat=='node':
-
-            if operation=='write':
-
-        #if op=='read':
-         #   rr=node.readp(j['MAC'],j['SERVICE'],j['CHAR'],j['CONFIG'])
-        #publish rr
-    #if op=='write':
-     #   node.writep(j['MAC'],j['SERVICE'],j['CHAR'],j['CONFIG'])
-        jobstatustopic = "$aws/things/Test_gateway/jobs/"+ jobid + "/update"
-
-        #if operation=="publish" and cmd=="start":
-        #    pubflag=True
-        #elif operation=="publish" and cmd=="stop":
-        #    pubflag=False
-        #led config
-        client.publish(jobstatustopic, json.dumps({ "status" : "SUCCEEDED"}),0)
-
-
-
-
-#if cat=='db':
-    #table
-    #start time and stop time
-    #publish data
-
-#if cat=='gateway':
-    #variable scantime
-
-
+from essentialImports import *
 
 def job(client,obj,msg):
-
     # This callback will only be called for messages with topics that match
     # $aws/things/Test_gateway/jobs/notify-next
     print("Job callback")
     print(str(msg.payload))
     jobconfig = json.loads(msg.payload.decode('utf-8'))
-    t_job = threading.Thread(name='parse', target=parse,args=(jobconfig,client,))
+    t_job = threading.Thread(name='parse', target=parse,args=(jobconfig,client,mainBuffer,TOPIC))
     t_job.start()
 
-
-
-
 def monitor(monEvent,conEvent):
-    print('db thread started')
+    print('MONITOR STARTED')
     global ID
     global NAME
     global PROTOCOL
@@ -104,12 +20,10 @@ def monitor(monEvent,conEvent):
     global C_STATUS
     global BT_STATUS
     global SCAN_TIME
-    global conFlag
     global SERVER_TYPE
     global TOPIC
     global PUBFLAG
     while True:
-
         if len(mainBuffer['monitor'])!=0:
             dataa=mainBuffer['monitor'].popleft()
             ID=dataa['ID']
@@ -133,51 +47,28 @@ def monitor(monEvent,conEvent):
         print("Topic-",TOPIC)
         time.sleep(5)
 
-
-
-
-
 def preq(led):
     while True:
         if not req.empty() and SCAN_STATUS=='Active':
             r=req.get()
             node.writep(r['MAC'],r['SERVICE'],r['CHAR'],r['CONFIG'])
 
-
 def pconfig(mac,service,char,config):
     request={'MAC':mac,'SERVICE':service,'CHAR':char,'CONFIG':config}
     req.put(request,block=True,timeout=2)
 
 
-def node(monEvent):
-    FLG=monEvent.wait()
-    print("NODE STARTED")
-    global BT_STATUS
-    while True:
-        if C_STATUS=='Active' and N_STATUS=='Active':
-            mainBuffer['nodeCmnd'].append({'task':'scan','operation':'write','value':SCAN_TIME,'source':'node'})
-            if len(mainBuffer['node'])!=0:
-                payload=mainBuffer['node'].popleft()
-                if payload!=None:
-                    q.append(payload)
-        time.sleep(3)
-
-
 def cloud():
+    print("CLOUD Started")
     global client
-    #global pubflag
 
     while True:
         chgEvent.wait()
-        print("cloud publish")
         if len(q)!=0 and C_STATUS=='Active' and N_STATUS=='Active':#and I_STATUS=='Active':
             d = q.popleft()
-            #print(d)
-            #print(q)
             for dev in d:
                 dt={}
                 now=datetime.now()
-                #print(now)
                 dt = {'t_stmp' : int(datetime.timestamp(now)),
                     't_utc' : now.strftime("%d/%m/%Y, %H:%M:%S"),
                     'x' : dev['Accelerometer(x)'],
@@ -188,9 +79,6 @@ def cloud():
                     'RSSI' : dev['RSSI']
                     }
 
-                # method call
-                #print('pubflag',pubflag)
-                #print('dt',dt)
                 if SERVER_TYPE == 'custom':
                     publishData(client,dt,TOPIC,'True',mainBuffer,SERVER_TYPE)
                 elif SERVER_TYPE == 'aws':
@@ -198,19 +86,16 @@ def cloud():
         time.sleep(3)
 
 def dbMaster():
+    print("DB Started")
     while True:
-
         if len(mainBuffer['dbCmnd'])!=0:
-
             job=mainBuffer['dbCmnd'].popleft()
             source=job['source']
             table=job['table']
             value=job['value']
 
             if job['operation']=='read':
-
                 if source=='monitor':
-
                     dataa=db.getdata('Device')
                     ID_=dataa[0][1]
                     NAME_=dataa[0][2]
@@ -243,24 +128,25 @@ def dbMaster():
         time.sleep(1)
 
 def nodeMaster():
+    FLG=monEvent.wait()
+    print("NODE STARTED")
+    global BT_STATUS
+    global SCAN_TIME
     while True:
 
         if len(mainBuffer['nodeCmnd'])!=0:
 
-            job=mainBuffer['node'].popleft()
+            job=mainBuffer['nodeCmnd'].popleft()
             operation=job['operation']
-            source=job['source']
+            #source=job['source']
             task=job['task']
-            value=job['value']
-            service=job['service']
-            char=job['char']
-            config=job['config']
-            mac=job['mac']
+            #value=job['value']
+            #service=job['service']
+            #char=job['char']
+            #config=job['config']
+            #mac=job['mac']
 
-            if task=='scan':
-                payl=app_node(value)
-                mainBuffer[source].append(payl)
-                time.sleep(value)
+            
 
             # if task=='config':
                 # if operation=='write':
@@ -269,21 +155,19 @@ def nodeMaster():
                 # if operation=='read':
                     # p=readP(mac service,char)
                     # mainBuffer[source+'p']['value'].append(p)
-
+        elif C_STATUS=='Active' and N_STATUS=='Active':
+            payl=app_node(SCAN_TIME)
+            if payl!=None:
+                q.append(payl)
         time.sleep(1)
 
+            
 
 if __name__=='__main__':
 
-    mainBuffer={
-            'cloud':deque([]),
-            'monitor':deque([]),
-            'dbCmnd':deque([]),
-            'node':deque([]),
-            'nodeCmnd':deque([])
-               }
+    mainBuffer={'cloud':deque([]),'monitor':deque([]),'dbCmnd':deque([]),'nodeCmnd':deque([])}
 
-    #DB VARIABLES
+    #-------------------- GLOBAL VARIABLES  ------------------------------------------------------------
     ID=''
     NAME=''
     PROTOCOL=''
@@ -299,35 +183,28 @@ if __name__=='__main__':
     SERVER_TYPE=''
     TOPIC=''
     PUBFLAG=''
-    #creating obejct of MQTT client
     q=deque([])
+    #-------------------------------------------------------------------------------------------------
 
-
-
+    #-------  THREAD Section ----------------------------------------------------------------------
     conEvent=threading.Event()
     monEvent=threading.Event()
     chgEvent=threading.Event()
     t_dbMaster=threading.Thread(name='dbMaster', target=dbMaster)
     t_dbMaster.start()
+    t_nodeMaster=threading.Thread(name='nodeMaster', target=nodeMaster)
+    t_nodeMaster.start()
     t_monitor = threading.Thread(name='monitor', target=monitor,args=(monEvent,conEvent,))
     t_monitor.start()
-    t_node=threading.Thread(name='NODE', target=node,args=(monEvent,))
-    t_node.start()
-
-    #conEvent.wait()
-    #connflag=False
-    #client = mqtt.Client()
-
-    #client.message_callback_add("$aws/things/Test_gateway/jobs/notify-next",job)
-    #print("Connecting first time to cloud.")
     t_cloud=threading.Thread(name='cloud', target=cloud)
     t_cloud.start()
+    #-------------------------------------------------------------------------------------------------
+
+    #-------  MAIN THREAD Section --------------------------------------------------------------------
     while True:
         if prev_HOST!=HOST or prev_PORT!=PORT:
             print("-"*20)
             print("Server setting")
-            #print(HOST)
-            #print(PORT)
             if chgEvent.isSet():
                 chgEvent.clear()
             if connflag==True:
@@ -336,16 +213,13 @@ if __name__=='__main__':
             client = mqtt.Client()
             client.message_callback_add("$aws/things/Test_gateway/jobs/notify-next",job)
             print("Connecting to cloud...")
-            #pubflag=False
             funInitilise(client,SERVER_TYPE,HOST,PORT)
             prev_HOST=HOST
             prev_PORT=PORT
-            #print("Current",prev_HOST)
             if SERVER_TYPE == 'aws':
-                #PUBFLAG=False
                 client.subscribe("$aws/things/Test_gateway/jobs/notify-next",1)
             client.loop_start()
             chgEvent.set()
             print("-"*20)
-        #print("main running")
         time.sleep(1)
+    #-------------------------------------------------------------------------------------------------

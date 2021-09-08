@@ -1,0 +1,10 @@
+# AWS gateway scan rate 
+
+{
+	"category" : "gateway"
+	"operation" : "write"
+	"gateway" : {
+			"component" : "scan_rate"
+			"value" : "<in milliseconds>"
+	}
+}
