@@ -29,7 +29,7 @@ def app_node(SCAN_TIME):
 
 
     #BLE Section
-    bt=subprocess.check_output(['hciconfig'])
+    bt=subprocess.check_output(['hciconfig'])#check for bluetooth status
     if b'UP' in bt:
         BT_STATUS='Active'
     else:
@@ -42,7 +42,7 @@ def app_node(SCAN_TIME):
         for dev in devices:
             dev_name=dev.getValueText(9)
             if dev_name=='Tag':
-                man=dev.getValueText(255)
+                man=dev.getValueText(255)#beacon manufacture data
                 try:
                     z=man[14:16] + man[12:14]
                     y=man[10:12] + man[8:10]
@@ -61,7 +61,7 @@ def app_node(SCAN_TIME):
         return payload
 
 
-'''for (adtype,desc,value) in dev.getScanData():
+
 payload.update({desc:value})
 if not q.full() and C_STATUS=='Active':
 q.put(payload,block=True,timeout=2)'''

@@ -130,7 +130,6 @@ def dbMaster():
 def nodeMaster():
     FLG=monEvent.wait()
     print("NODE STARTED")
-    global BT_STATUS
     global SCAN_TIME
     while True:
 
@@ -146,7 +145,7 @@ def nodeMaster():
             #config=job['config']
             #mac=job['mac']
 
-            
+
 
             # if task=='config':
                 # if operation=='write':
@@ -161,7 +160,67 @@ def nodeMaster():
                 q.append(payl)
         time.sleep(1)
 
-            
+def main():
+    
+    mainBuffer={'cloud':deque([]),'monitor':deque([]),'dbCmnd':deque([]),'nodeCmnd':deque([])}
+
+    #-------------------- GLOBAL VARIABLES  ------------------------------------------------------------
+    ID=''
+    NAME=''
+    PROTOCOL=''
+    HOST=''
+    PORT=''
+    N_STATUS=''
+    C_STATUS=''
+    I_STATUS=''
+    BT_STATUS=''
+    SCAN_TIME=''
+    prev_HOST=''
+    prev_PORT=''
+    SERVER_TYPE=''
+    TOPIC=''
+    PUBFLAG=''
+    q=deque([])
+    #-------------------------------------------------------------------------------------------------
+
+    #-------  THREAD Section ----------------------------------------------------------------------
+    conEvent=threading.Event()
+    monEvent=threading.Event()
+    chgEvent=threading.Event()
+    t_dbMaster=threading.Thread(name='dbMaster', target=dbMaster)
+    t_dbMaster.start()
+    t_nodeMaster=threading.Thread(name='nodeMaster', target=nodeMaster)
+    t_nodeMaster.start()
+    t_monitor = threading.Thread(name='monitor', target=monitor,args=(monEvent,conEvent,))
+    t_monitor.start()
+    t_cloud=threading.Thread(name='cloud', target=cloud)
+    t_cloud.start()
+    #-------------------------------------------------------------------------------------------------
+
+    #-------  MAIN THREAD Section --------------------------------------------------------------------
+    while True:
+        if prev_HOST!=HOST or prev_PORT!=PORT:
+            print("-"*20)
+            print("Server setting")
+            if chgEvent.isSet():
+                chgEvent.clear()
+            if connflag==True:
+                client.loop_stop()
+                client.disconnect()
+            client = mqtt.Client()
+            client.message_callback_add("$aws/things/Test_gateway/jobs/notify-next",job)
+            print("Connecting to cloud...")
+            funInitilise(client,SERVER_TYPE,HOST,PORT)
+            prev_HOST=HOST
+            prev_PORT=PORT
+            if SERVER_TYPE == 'aws':
+                client.subscribe("$aws/things/Test_gateway/jobs/notify-next",1)
+            client.loop_start()
+            chgEvent.set()
+            print("-"*20)
+        time.sleep(1)
+    #-------------------------------------------------------------------------------------------------
+
 
 if __name__=='__main__':
 
