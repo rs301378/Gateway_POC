@@ -61,7 +61,7 @@ def app_node(SCAN_TIME):
         return payload
 
 
-
+'''
 payload.update({desc:value})
 if not q.full() and C_STATUS=='Active':
 q.put(payload,block=True,timeout=2)'''
