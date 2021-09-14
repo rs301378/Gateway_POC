@@ -122,13 +122,13 @@ class tables():
 
 p1=tables()
 #print(p1.getdata('Node'))
-p1.calltable()
+#p1.calltable()
 
 #p1.callgetdata()
 #p1.configdataread()
 #p1.HistoricalDataread()
 #p1.offlinedataread()
-p1.callputdata()
+#p1.callputdata()
 #p1.configdataread()
 #p1.close()
 #p1.deletetable()
