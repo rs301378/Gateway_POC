@@ -1,7 +1,14 @@
 {%extends 'base.html'%}
 
 {%block pageHeading%}Data Manager{%endblock%}
-{%block headerBtns%} <button type="button" id="excelBtn">Download</button> {%endblock%}
+{%block headerBtns%} 
+    <button type="button" id="excelBtn">Download</button> 
+    {%if type!='Offline Data'%}
+    <a href="{{url_for('offlineData')}}"><button type="button" >Offline Data</button></a>
+    {%else%}
+    <a href="{{url_for('dataManager')}}"><button type="button" >Historical Data</button></a>
+    {%endif%}
+{%endblock%}
 
 {%block navBtns%}
 <li ><a href="{{url_for('home')}}"><img class="icon" ><P>Dashboard</P></a></li>
@@ -19,7 +26,7 @@
 
 <div class="card" style="width:80%;">
     <div class="card-head", style="background-color:#d32d41;">
-        Historical Data
+        {{type}}
     </div>
     <div class="card-content">
         <table style="width: 100%;" id="table2excel">

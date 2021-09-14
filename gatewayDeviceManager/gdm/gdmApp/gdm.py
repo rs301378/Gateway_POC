@@ -32,7 +32,7 @@ def home():
         nodeData=db.getdata('Node')
         nodeData={'scanRate':nodeData[0][1],'status':nodeData[0][2]}
         cloudData=db.getdata('Cloud')
-        cloudData={'server':cloudData[0][1],'hostAdd':cloudData[0][2],'port':cloudData[0][3],'status':cloudData[0][4]}
+        cloudData={'server':cloudData[0][1],'hostAdd':cloudData[0][2],'port':cloudData[0][3],'status':cloudData[0][4],'topic':cloudData[0][5],'pubFlag':cloudData[0][6]}
         return render_template('home.html',nodeData=nodeData,cloudData=cloudData)
     return redirect(url_for('login'))
 
@@ -54,7 +54,9 @@ def cloudConfig():
                 db.updatetable('Cloud','Ip',request.form['hostAdd'])
                 db.updatetable('Cloud','Port',request.form['port'])
                 db.updatetable('Cloud','PUBFLAG','False')
+                db.updatetable('Cloud','ServerType','Unsecured')
             if server=='aws':
+                db.updatetable('Cloud','ServerType','Secured')
                 root=request.files['rootFile']                  #accessing the uploaded files
                 pvtKey=request.files['pvtKey']
                 iotCert=request.files['iotCert']
@@ -62,7 +64,7 @@ def cloudConfig():
                 pvtKey.save(path+'key.pem.key')
                 iotCert.save(path+'cert.pem.crt')
         cloudData=db.getdata('Cloud')
-        cloudData={'server':cloudData[0][1],'hostAdd':cloudData[0][2],'port':cloudData[0][3],'status':cloudData[0][4]}
+        cloudData={'server':cloudData[0][1],'hostAdd':cloudData[0][2],'port':cloudData[0][3],'status':cloudData[0][4],'topic':cloudData[0][5],'pubFlag':cloudData[0][6]}
         return render_template('cloudConfig.html',cloudData=cloudData)
     return redirect(url_for('login'))
 
@@ -90,7 +92,7 @@ def debug():
     if 'logedIn' in session:
         cmdKey=request.args.get('cmd')          #extracting the command key from the html form
         if cmdKey:
-            cmd={'1':['hciconfig'],'2':['btmgmt','--index','0','info'],'3':['btmgmt','--index','0','find','-l']}
+            cmd={'1':['hciconfig'],'2':['btmgmt','--index','0','info'],'3':['btmgmt','--index','0','find','-l'],'4':['systemctl','status','apache2'],'5':['systemctl','status','app']}
             if cmdKey in cmd:
                 data=subprocess.Popen(cmd[cmdKey],stdout=subprocess.PIPE).communicate()[0]      #executing the command and getting the data into string format
                 data=data.decode('utf-8')                                                       #decoding the binary the data into string
@@ -110,6 +112,13 @@ def reports():
 @app.route('/dataManager')
 def dataManager():
     if 'logedIn' in session:
+        data=db.getdata('HistoricalData')
+        return render_template('dataManager.html',data=data,type='Historical Data')
+    return redirect(url_for('login'))
+
+@app.route('/dataManager/offData')
+def offlineData():
+    if 'logedIn' in session:
         data=db.getdata('OfflineData')
-        return render_template('dataManager.html',data=data)
+        return render_template('dataManager.html',data=data,type='Offline Data')
     return redirect(url_for('login'))
