@@ -1,4 +1,5 @@
 from essentialImports import *
+#Let's create a log
 
 def job(client,obj,msg):
     # This callback will only be called for messages with topics that match
