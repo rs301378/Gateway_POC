@@ -4,8 +4,8 @@ import time
 class tables():
 
     def __init__(self):
-        self.conn = sqlite3.connect('/home/lab/gateway/Gateway_POC/mydatabasenew.db',check_same_thread=False)
-        # self.conn = sqlite3.connect('/home/attu/Desktop/ScratchNest/mydatabasenew.db',check_same_thread=False)
+        # self.conn = sqlite3.connect('/home/lab/gateway/Gateway_POC/mydatabasenew.db',check_same_thread=False)
+        self.conn = sqlite3.connect('/home/attu/Desktop/ScratchNest/mydatabasenew.db',check_same_thread=False)
 
     def createTable(self,tablename, val):
         self.conn.execute('create table if not exists ' + tablename + val)
@@ -94,10 +94,8 @@ class tables():
 
 
     def updatetable(self,tablename, c, v):
-        print('hmmmmmmm')
         try:
             p = f"update {tablename} set {c} = '{v}' where Key = 1"
-            print('hmmm')
             self.conn.execute(p)
             self.conn.commit()
         except Exception as e:

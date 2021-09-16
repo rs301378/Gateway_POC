@@ -72,10 +72,8 @@ def cloudConfig():
 def nodeConfig():
     if 'logedIn' in session:
         if request.method=="POST":
-            print('hahaha')
             db.updatetable('Node','ScaneRate',request.form['scanRate'])
             db.updatetable('Node','N_Status',request.form['status'])
-            print('it worked!')
         nodeData=db.getdata('Node')
         nodeData={'scanRate':nodeData[0][1],'status':nodeData[0][2]}
         return render_template('nodeConfig.html',nodeData=nodeData)
@@ -106,7 +104,10 @@ def debug():
 @app.route('/reports')
 def reports():
     if 'logedIn' in session:
-        return render_template('reports.html')
+        file=open("/home/attu/Desktop/ScratchNest/Gateway_POC/logs/main.log",'r')
+        data=file.readlines()[::-1]
+        file.close()
+        return render_template('reports.html',data=data)
     return redirect(url_for('login'))
 
 @app.route('/dataManager')
