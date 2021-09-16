@@ -1,5 +1,5 @@
 import json
-from bluepy.btle import Scanner, DefaultDelegate , UUID, Peripheral
+# from bluepy.btle import Scanner, DefaultDelegate , UUID, Peripheral
 from time import sleep
 import struct
 import sys

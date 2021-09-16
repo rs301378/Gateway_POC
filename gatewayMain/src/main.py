@@ -1,5 +1,7 @@
+from logging import log
 from essentialImports import *
-#Let's create a log
+logging.basicConfig(level=0,filename='/home/attu/Desktop/ScratchNest/Gateway_POC/logs/main.log',filemode='w',format='[%(asctime)s] [%(levelname)s] - %(message)s')
+logger=logging.getLogger()
 
 def job(client,obj,msg):
     # This callback will only be called for messages with topics that match
@@ -11,7 +13,7 @@ def job(client,obj,msg):
     t_job.start()
 
 def monitor(monEvent,conEvent):
-    print('MONITOR STARTED')
+    logger.info("MONITOR THREAD STARTED")
     global ID
     global NAME
     global PROTOCOL
@@ -40,12 +42,6 @@ def monitor(monEvent,conEvent):
             PUBFLAG=dataa['PUBFLAG']
             monEvent.set()
         mainBuffer['dbCmnd'].append({'table':'','operation':'read','value':'','source':'monitor'})
-        print("Cloud-",C_STATUS)
-        print("Node-",N_STATUS)
-        print("Scan-",SCAN_TIME)
-        print("Host-",HOST)
-        print("Pubflag-",PUBFLAG)
-        print("Topic-",TOPIC)
         time.sleep(5)
 
 def preq(led):
@@ -60,7 +56,7 @@ def pconfig(mac,service,char,config):
 
 
 def cloud():
-    print("CLOUD Started")
+    logger.info("CLOUD THREAD STARTED")
     global client
 
     while True:
@@ -87,7 +83,7 @@ def cloud():
         time.sleep(3)
 
 def dbMaster():
-    print("DB Started")
+    logger.info("DB THREAD STARTED")
     while True:
         if len(mainBuffer['dbCmnd'])!=0:
             job=mainBuffer['dbCmnd'].popleft()
@@ -130,7 +126,7 @@ def dbMaster():
 
 def nodeMaster():
     FLG=monEvent.wait()
-    print("NODE STARTED")
+    logger.info("NODE THREAD STARTED")
     global SCAN_TIME
     while True:
 
@@ -201,8 +197,6 @@ def main():
     #-------  MAIN THREAD Section --------------------------------------------------------------------
     while True:
         if prev_HOST!=HOST or prev_PORT!=PORT:
-            print("-"*20)
-            print("Server setting")
             if chgEvent.isSet():
                 chgEvent.clear()
             if connflag==True:
@@ -224,6 +218,7 @@ def main():
 
 
 if __name__=='__main__':
+    logger.info('MAIN STARTED')
     mainBuffer={'cloud':deque([]),'monitor':deque([]),'dbCmnd':deque([]),'nodeCmnd':deque([])}
 
     #-------------------- GLOBAL VARIABLES  ------------------------------------------------------------
@@ -262,8 +257,6 @@ if __name__=='__main__':
     #-------  MAIN THREAD Section --------------------------------------------------------------------
     while True:
         if prev_HOST!=HOST or prev_PORT!=PORT:
-            print("-"*20)
-            print("Server setting")
             if chgEvent.isSet():
                 chgEvent.clear()
             if connflag==True:
@@ -271,15 +264,13 @@ if __name__=='__main__':
                 client.disconnect()
             client = mqtt.Client()
             client.message_callback_add("$aws/things/Test_gateway/jobs/notify-next",job)
-            print("Connecting to cloud...")
-            funInitilise(client,SERVER_TYPE,HOST,PORT)
+            funInitilise(client,SERVER_TYPE,HOST,PORT,logger)
             prev_HOST=HOST
             prev_PORT=PORT
             if SERVER_TYPE == 'aws':
                 client.subscribe("$aws/things/Test_gateway/jobs/notify-next",1)
             client.loop_start()
             chgEvent.set()
-            print("-"*20)
         time.sleep(1)
     #-------------------------------------------------------------------------------------------------
 

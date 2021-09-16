@@ -16,7 +16,6 @@ path=(__file__).split('/')
 path.pop()
 path="/".join(path)
 path=path+'/certUploads/'
-print(path)
 
 IoT_protocol_name = "x-amzn-mqtt-ca"
 mqtt_url = "a3qvnhplljfvjr-ats.iot.us-west-2.amazonaws.com"
@@ -68,13 +67,19 @@ def on_General(client,obj,msg):
     print("GENERAL"+msg.topic+"::"+str(msg.payload))
 
 
-def funInitilise(client,SERVER_TYPE,HOST,PORT):
+def funInitilise(client,SERVER_TYPE,HOST,PORT,logger):
+    logger.info("Connecting to cloud...")
 
     client.on_connect = onConnect
     #client.on_disconnect = onDisconnect
     #client.on_publish = on_publish
     if SERVER_TYPE == 'custom':
-        client.connect(HOST)
+        try:
+            client.connect(HOST)
+            logger.info(f"Connection established --> {PORT}")
+        except Exception as e:
+            logger.error(f"[cloud]-->{e}")
+        
     elif SERVER_TYPE == 'aws':
 
 
@@ -98,8 +103,10 @@ def funInitilise(client,SERVER_TYPE,HOST,PORT):
 
                 client.tls_set_context(context = ssl_context)
                 client.connect(HOST, port = int(PORT), keepalive=60)
-        except:
-            print("Connection failed! Please try again...")
+            logger.info(f"Connection established --> {PORT}")
+        except Exception as e:
+            logger.info("Connection failed please try again")
+            logger.error(f"[cloud]-->{e}")
             exit(1)
 
 def publishData(client, dt,t,pubflag,mainBuffer,SERVER_TYPE):
