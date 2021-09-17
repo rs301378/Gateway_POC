@@ -12,6 +12,7 @@ class tables():
 
     def __init__(self):
         self.conn = sqlite3.connect('/home/lab/gateway/Gateway_POC/gatewayMain/src/mydatabasenew.db',check_same_thread=False)
+        # self.conn = sqlite3.connect('/home/attu/Desktop/ScratchNest/mydb.db',check_same_thread=False)
         try:
             self.conn.execute('select * from Cloud')
         except:
@@ -42,7 +43,7 @@ class tables():
             time.sleep(2)
             return self.getdata(tableselect)
 
-    def getdatadate(tableselect,s,p):
+    def getdatadate(self,tableselect,s,p):
         d=self.conn.execute('select * from ' + tableselect + 'where date > = '+ s + 'and date < =' + p)
         d=d.fetchall()
         return d
@@ -88,10 +89,10 @@ class tables():
 
     def callputdata(self):
         self.putdata('Device', ('1', '1100110011', 'Test Device', '172.23.0.26', 'ETHERNET', 'Active'))
-        self.putdata('Cloud', ('1','custom', '0.0.0.0', '8883', 'Active','Dummy','False'))
-        self.putdata('Node', ('1' ,'3', 'Active', 'Active'))
-        self.putdata('HistoricalData', ('1', '1100110011', 'Test Device', '172.23.0.26', 'ETHERNET', '20' , '20' , '20' ,'2021-09-03'))
-        self.putdata('OfflineData', ('1', '1100110011', 'Test Device', '172.23.0.26', 'ETHERNET', '20' , '20' , '20' ,'2021-09-03'))
+        self.putdata('Cloud', ('1','custom', '0.0.0.0', '8883', 'Inactive','Not set','False'))
+        self.putdata('Node', ('1' ,'3', 'Inactive', 'Inactive'))
+        self.putdata('HistoricalData', ('1', 'ff:ff:ff:ff', '-20', '1M', 'ON', '20' , '20' , '20' ,'2021-09-03'))
+        self.putdata('OfflineData', ('1', 'ff:ff:ff:ff', '-20', '1M', 'ON', '20' , '20' , '20' ,'2021-09-03'))
 
 
     def deletetable(self,tablename):
@@ -101,10 +102,8 @@ class tables():
 
 
     def updatetable(self,tablename, c, v):
-        print('hmmmmmmm')
         try:
             p = f"update {tablename} set {c} = '{v}' where Key = 1"
-            print('hmmm')
             self.conn.execute(p)
             self.conn.commit()
         except Exception as e:

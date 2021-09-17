@@ -32,7 +32,13 @@ def home():
         nodeData=db.getdata('Node')
         nodeData={'scanRate':nodeData[0][1],'status':nodeData[0][2]}
         cloudData=db.getdata('Cloud')
-        cloudData={'server':cloudData[0][1],'hostAdd':cloudData[0][2],'port':cloudData[0][3],'status':cloudData[0][4],'topic':cloudData[0][5],'pubFlag':cloudData[0][6]}
+        server=cloudData[0][1]
+        serverType=''
+        if server=='custom':
+            serverType='Unsecured'
+        else:
+            serverType='Secured'
+        cloudData={'server':server,'serverType':serverType,'hostAdd':cloudData[0][2],'port':cloudData[0][3],'status':cloudData[0][4],'topic':cloudData[0][5],'pubFlag':cloudData[0][6]}
         return render_template('home.html',nodeData=nodeData,cloudData=cloudData)
     return redirect(url_for('login'))
 
@@ -54,9 +60,7 @@ def cloudConfig():
                 db.updatetable('Cloud','Ip',request.form['hostAdd'])
                 db.updatetable('Cloud','Port',request.form['port'])
                 db.updatetable('Cloud','PUBFLAG','False')
-                db.updatetable('Cloud','ServerType','custom')
             if server=='aws':
-                db.updatetable('Cloud','ServerType','aws')
                 root=request.files['rootFile']                  #accessing the uploaded files
                 pvtKey=request.files['pvtKey']
                 iotCert=request.files['iotCert']
@@ -64,7 +68,13 @@ def cloudConfig():
                 pvtKey.save(path+'key.pem.key')
                 iotCert.save(path+'cert.pem.crt')
         cloudData=db.getdata('Cloud')
-        cloudData={'server':cloudData[0][1],'hostAdd':cloudData[0][2],'port':cloudData[0][3],'status':cloudData[0][4],'topic':cloudData[0][5],'pubFlag':cloudData[0][6]}
+        server=cloudData[0][1]
+        serverType=''
+        if server=='custom':
+            serverType='Unsecured'
+        else:
+            serverType='Secured'
+        cloudData={'server':server,'serverType':serverType,'hostAdd':cloudData[0][2],'port':cloudData[0][3],'status':cloudData[0][4],'topic':cloudData[0][5],'pubFlag':cloudData[0][6]}
         return render_template('cloudConfig.html',cloudData=cloudData)
     return redirect(url_for('login'))
 
@@ -72,10 +82,8 @@ def cloudConfig():
 def nodeConfig():
     if 'logedIn' in session:
         if request.method=="POST":
-            print('hahaha')
             db.updatetable('Node','ScaneRate',request.form['scanRate'])
             db.updatetable('Node','N_Status',request.form['status'])
-            print('it worked!')
         nodeData=db.getdata('Node')
         nodeData={'scanRate':nodeData[0][1],'status':nodeData[0][2]}
         return render_template('nodeConfig.html',nodeData=nodeData)

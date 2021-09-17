@@ -33,13 +33,14 @@
             <thead style="color: #4da851;">
                 <tr>
                     <th>ID</th>
+                    <th>MAC address</th>
                     <th>RSSI</th>
                     <th>PHY config</th>
-                    <th>LED status</th>
-                    <th>MAC address</th>
+                    <th>Config</th>
                     <th>Accelerometer(X)</th>
                     <th>Accelerometer(Y)</th>
                     <th>Accelerometer(Z)</th>
+                    <th>Time Stamp</th>
                 </tr>
             </thead>
             <tbody>
@@ -52,6 +53,7 @@
                     <td>{{row[4]}}</td>
                     <td>{{row[5]}}</td>
                     <td>{{row[6]}}</td>
+                    <td>{{row[7]}}</td>
                     <td>{{row[8]}}</td>
                 </tr>
                 {%endfor%}
