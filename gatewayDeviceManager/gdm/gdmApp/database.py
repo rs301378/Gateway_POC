@@ -1,16 +1,22 @@
 import sqlite3
 import time
 
-class tables():
+#conn = sqlite3.connect('/home/lab/gateway/Gateway_POC/mydatabasenew.db',check_same_thread=False)
 
-    def __init__(self):
-        self.conn = sqlite3.connect('/home/lab/gateway/Gateway_POC/mydatabasenew.db',check_same_thread=False)
-        # self.conn = sqlite3.connect('/home/attu/Desktop/ScratchNest/mydatabasenew.db',check_same_thread=False)
+class tables():
 
     def createTable(self,tablename, val):
         self.conn.execute('create table if not exists ' + tablename + val)
         self.conn.commit()
         print("table created")
+
+    def __init__(self):
+        self.conn = sqlite3.connect('/home/lab/gateway/Gateway_POC/gatewayMain/src/mydatabasenew.db',check_same_thread=False)
+        try:
+            self.conn.execute('select * from Cloud')
+        except:
+            self.calltable()
+            self.callputdata()
 
     def calltable(self):
         val1 = (' (Key  int ,Id varchar(20) , Name varchar(20) , IPv4 varchar(20) , Interface varchar(20) , Status varchar(20)) ')
@@ -26,6 +32,7 @@ class tables():
         self.createTable('OfflineData', val5)
 
     def getdata(self,tableselect):
+
         try:
             data=self.conn.execute('select * from ' + tableselect)
             data=data.fetchall()
@@ -35,7 +42,7 @@ class tables():
             time.sleep(2)
             return self.getdata(tableselect)
 
-    def getdatadate(self,tableselect,s,p):
+    def getdatadate(tableselect,s,p):
         d=self.conn.execute('select * from ' + tableselect + 'where date > = '+ s + 'and date < =' + p)
         d=d.fetchall()
         return d
@@ -81,8 +88,8 @@ class tables():
 
     def callputdata(self):
         self.putdata('Device', ('1', '1100110011', 'Test Device', '172.23.0.26', 'ETHERNET', 'Active'))
-        self.putdata('Cloud', ('1','Unsecured', '0.0.0.0', '8883', 'Inactive','Dummy','False'))
-        self.putdata('Node', ('1' ,'3', 'Inactive', 'Inactive'))
+        self.putdata('Cloud', ('1','custom', '0.0.0.0', '8883', 'Active','Dummy','False'))
+        self.putdata('Node', ('1' ,'3', 'Active', 'Active'))
         self.putdata('HistoricalData', ('1', '1100110011', 'Test Device', '172.23.0.26', 'ETHERNET', '20' , '20' , '20' ,'2021-09-03'))
         self.putdata('OfflineData', ('1', '1100110011', 'Test Device', '172.23.0.26', 'ETHERNET', '20' , '20' , '20' ,'2021-09-03'))
 
@@ -120,13 +127,13 @@ class tables():
 
 p1=tables()
 #print(p1.getdata('Node'))
-# p1.calltable()
+#p1.calltable()
 
 #p1.callgetdata()
 #p1.configdataread()
 #p1.HistoricalDataread()
 #p1.offlinedataread()
-# p1.callputdata()
+#p1.callputdata()
 #p1.configdataread()
 #p1.close()
 #p1.deletetable()

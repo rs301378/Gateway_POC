@@ -83,7 +83,7 @@ def cloud():
                     publishData(client,dt,TOPIC,'True',mainBuffer,SERVER_TYPE)
                 elif SERVER_TYPE == 'aws':
                     publishData(client,dt,TOPIC,PUBFLAG,mainBuffer,SERVER_TYPE)
-        time.sleep(3)
+        time.sleep(0.01)
 
 def dbMaster():
     print("DB Started")
@@ -158,6 +158,7 @@ def nodeMaster():
             payl=app_node(SCAN_TIME)
             if payl!=None:
                 q.append(payl)
+                print(len(q))
         time.sleep(1)
 
 def main():

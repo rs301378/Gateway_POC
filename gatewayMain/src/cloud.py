@@ -69,7 +69,7 @@ def on_General(client,obj,msg):
 
 
 def funInitilise(client,SERVER_TYPE,HOST,PORT):
-
+    print(SERVER_TYPE)
     client.on_connect = onConnect
     #client.on_disconnect = onDisconnect
     #client.on_publish = on_publish

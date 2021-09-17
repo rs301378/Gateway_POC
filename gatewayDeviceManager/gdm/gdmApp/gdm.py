@@ -54,9 +54,9 @@ def cloudConfig():
                 db.updatetable('Cloud','Ip',request.form['hostAdd'])
                 db.updatetable('Cloud','Port',request.form['port'])
                 db.updatetable('Cloud','PUBFLAG','False')
-                db.updatetable('Cloud','ServerType','Unsecured')
+                db.updatetable('Cloud','ServerType','custom')
             if server=='aws':
-                db.updatetable('Cloud','ServerType','Secured')
+                db.updatetable('Cloud','ServerType','aws')
                 root=request.files['rootFile']                  #accessing the uploaded files
                 pvtKey=request.files['pvtKey']
                 iotCert=request.files['iotCert']
